@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENSO Operations Dashboard - Live Daily Reports</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="chart-config.js" defer></script>
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo-section">
+                <h1><i class="fas fa-chart-line"></i> ENSO Operations Dashboard</h1>
+                <p>Independent Consultant - Operations, Client Engagement & Marketing Support</p>
+            </div>
+            <div class="date-indicator">
+                <div class="current-date" id="currentDate">Loading...</div>
+                <div class="performance-badge">
+                    <span class="badge" id="performanceScore">--</span>
+                    <small>Today's Score</small>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="main-nav">
+            <div class="container">
+                <ul>
+                    <li><a href="#dashboard" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="#daily-reports"><i class="fas fa-clipboard-list"></i> Daily Reports</a></li>
+                    <li><a href="#targets"><i class="fas fa-bullseye"></i> Targets</a></li>
+                    <li><a href="#performance"><i class="fas fa-chart-bar"></i> Performance</a></li>
+                    <li><a href="#agreement"><i class="fas fa-file-contract"></i> Agreement</a></li>
+                    <li><a href="report-form.html" class="nav-highlight"><i class="fas fa-plus-circle"></i> Submit Report</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Quick Stats -->
+        <section class="quick-stats" id="dashboard">
+            <h2 class="section-title"><i class="fas fa-tachometer-alt"></i> Today's Quick Stats</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="stat-content">
+                        <h3>Daily Bookings</h3>
+                        <div class="stat-value" id="dailyBookings">0/2</div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="bookingProgress" style="width: 0%"></div>
+                            </div>
+                            <span class="stat-target">Target: 2</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-comment-dots"></i></div>
+                    <div class="stat-content">
+                        <h3>Outbound Messages</h3>
+                        <div class="stat-value" id="dailyMessages">0/20</div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="messageProgress" style="width: 0%"></div>
+                            </div>
+                            <span class="stat-target">Target: 20</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-content">
+                        <h3>Jumia Orders</h3>
+                        <div class="stat-value" id="jumiaOrders">0</div>
+                        <div class="stat-target">Processed Today</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-handshake"></i></div>
+                    <div class="stat-content">
+                        <h3>Partnership Leads</h3>
+                        <div class="stat-value" id="partnershipLeads">0</div>
+                        <div class="stat-target">This Week</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+            <div class="chart-container">
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-line"></i> Weekly Performance</h3>
+                    <canvas id="weeklyChart" height="250"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-pie"></i> Activity Distribution</h3>
+                    <canvas id="activityChart" height="250"></canvas>
+                </div>
+        </section>
+
+        <!-- Daily Requirements -->
+        <section class="section" id="daily-reports">
+            <h2 class="section-title"><i class="fas fa-tasks"></i> Daily Requirements (Non-Negotiable)</h2>
+            
+            <div class="requirements-grid">
+                <div class="requirement-card" data-metric="response">
+                    <div class="req-icon"><i class="fas fa-clock"></i></div>
+                    <div class="req-content">
+                        <h3>Response Time</h3>
+                        <p>Respond to all inquiries within <strong>10 minutes</strong></p>
+                        <div class="req-status">
+                            <span class="status-indicator" id="responseStatus"></span>
+                            <span id="responseText">Not tracked today</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="requirement-card" data-metric="messages">
+                    <div class="req-icon"><i class="fas fa-envelope"></i></div>
+                    <div class="req-content">
+                        <h3>Outbound Messages</h3>
+                        <p>Send <strong>20 outbound messages</strong> daily</p>
+                        <div class="req-progress">
+                            <input type="range" min="0" max="20" value="0" class="slider" id="messageSlider">
+                            <div class="slider-labels">
+                                <span>0</span>
+                                <span>20</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="requirement-card" data-metric="followups">
+                    <div class="req-icon"><i class="fas fa-redo"></i></div>
+                    <div class="req-content">
+                        <h3>Follow-ups</h3>
+                        <p>Complete <strong>10 follow-ups</strong> daily</p>
+                        <div class="req-progress">
+                            <input type="range" min="0" max="10" value="0" class="slider" id="followupSlider">
+                            <div class="slider-labels">
+                                <span>0</span>
+                                <span>10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="requirement-card" data-metric="bookings">
+                    <div class="req-icon"><i class="fas fa-calendar-plus"></i></div>
+                    <div class="req-content">
+                        <h3>Bookings Closed</h3>
+                        <p>Close minimum <strong>2 bookings</strong> daily</p>
+                        <div class="counter-controls">
+                            <button class="counter-btn minus" onclick="adjustCounter('bookingCounter', -1)">-</button>
+                            <span class="counter-value" id="bookingCounter">0</span>
+                            <button class="counter-btn plus" onclick="adjustCounter('bookingCounter', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="report-actions">
+                <button class="btn btn-primary" onclick="saveDailyProgress()">
+                    <i class="fas fa-save"></i> Save Today's Progress
+                </button>
+                <button class="btn btn-secondary" onclick="loadSampleData()">
+                    <i class="fas fa-chart-line"></i> Load Sample Data
+                </button>
+                <button class="btn btn-success" onclick="location.href='report-form.html'">
+                    <i class="fas fa-file-export"></i> Submit Full Daily Report
+                </button>
+            </div>
+        </section>
+
+        <!-- Recent Reports -->
+        <section class="section">
+            <h2 class="section-title"><i class="fas fa-history"></i> Recent Daily Reports</h2>
+            <div class="reports-container" id="reportsContainer">
+                <!-- Reports will be loaded here -->
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list fa-2x"></i>
+                    <p>No daily reports submitted yet.</p>
+                    <p>Submit your first report to see data here.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Weekly Split -->
+        <section class="section" id="targets">
+            <h2 class="section-title"><i class="fas fa-calendar-week"></i> Weekly Split Structure</h2>
+            <div class="week-schedule">
+                <div class="day-card">
+                    <div class="day-header monday">Mon</div>
+                    <div class="day-content">
+                        <h4>Outreach</h4>
+                        <ul>
+                            <li>Visit 5 locations</li>
+                            <li>Pitch partnerships</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="day-card">
+                    <div class="day-header tuesday">Tue</div>
+                    <div class="day-content">
+                        <h4>Outreach</h4>
+                        <ul>
+                            <li>Visit 5 locations</li>
+                            <li>Follow up leads</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="day-card">
+                    <div class="day-header wednesday">Wed</div>
+                    <div class="day-content">
+                        <h4>Jumia/Sales</h4>
+                        <ul>
+                            <li>Update listings</li>
+                            <li>Process orders</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="day-card">
+                    <div class="day-header thursday">Thu</div>
+                    <div class="day-content">
+                        <h4>Jumia/Sales</h4>
+                        <ul>
+                            <li>Track products</li>
+                            <li>Create bundles</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="day-card">
+                    <div class="day-header friday">Fri</div>
+                    <div class="day-content">
+                        <h4>Events/Content</h4>
+                        <ul>
+                            <li>Capture B-roll</li>
+                            <li>Event support</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="day-card">
+                    <div class="day-header saturday">Sat</div>
+                    <div class="day-content">
+                        <h4>Events/Content</h4>
+                        <ul>
+                            <li>Follow up attendees</li>
+                            <li>Content creation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Agreement Summary -->
+        <section class="section" id="agreement">
+            <h2 class="section-title"><i class="fas fa-file-contract"></i> Agreement Summary</h2>
+            <div class="agreement-grid">
+                <div class="agreement-card">
+                    <h3><i class="fas fa-money-bill-wave"></i> Compensation</h3>
+                    <p><strong>Base Monthly:</strong> KES 35,000</p>
+                    <p><strong>Booking Bonus:</strong> KES 500 per booking</p>
+                    <p><strong>Partnership Bonus:</strong> Variable</p>
+                    <p><strong>Jumia Growth Bonus:</strong> Variable</p>
+                </div>
+                <div class="agreement-card">
+                    <h3><i class="fas fa-bullseye"></i> Monthly Targets</h3>
+                    <p><strong>Bookings:</strong> 40-60</p>
+                    <p><strong>Partnerships:</strong> 8-12</p>
+                    <p><strong>Jumia Sales:</strong> Increase growth</p>
+                </div>
+                <div class="agreement-card">
+                    <h3><i class="fas fa-calendar-alt"></i> Term</h3>
+                    <p><strong>Duration:</strong> 24 months</p>
+                    <p><strong>Start Date:</strong> April 1, 2026</p>
+                    <p><strong>Payment:</strong> Monthly, with tax withheld</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Rule Banner -->
+        <div class="key-rule-banner">
+            <div class="key-rule-content">
+                <i class="fas fa-key"></i>
+                <div>
+                    <h3>KEY RULE</h3>
+                    <p>Every day must lead to bookings, sales, or partnerships</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-section">
+                <h4>ENSO Consultancy & Services Ltd.</h4>
+                <p>Independent Consultant Operations Dashboard v2.0</p>
+                <p>Live Reporting System</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="report-form.html">Submit Daily Report</a></li>
+                    <li><a href="#dashboard">View Dashboard</a></li>
+                    <li><a href="#performance">Performance Analytics</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Data Status</h4>
+                <p><span class="status-indicator active"></span> <span id="dataStatus">Local storage active</span></p>
+                <p><small>Last updated: <span id="lastUpdated">Never</span></small></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 ENSO Consultancy & Services Ltd. | This dashboard summarizes the consultancy agreement and operational structure for effective performance tracking.</p>
+        </div>
+    </footer>
+
+    <!-- Modal for Daily Summary -->
+    <div id="summaryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2><i class="fas fa-check-circle"></i> Daily Progress Saved</h2>
+            <div class="modal-summary" id="modalSummary">
+                <!-- Summary content will be inserted here -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="location.href='report-form.html'">Submit Full Report</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
