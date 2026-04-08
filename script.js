@@ -482,4 +482,362 @@ function importData(event) {
         }
     };
     reader.readAsText(file);
+    // PWA Installation
+let deferredPrompt;
+const installBtn = document.getElementById('installBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent Chrome 67 and earlier from automatically showing the prompt
+    e.preventDefault();
+    // Stash the event so it can be triggered later
+    deferredPrompt = e;
+    // Update UI to show the install button
+    if (installBtn) {
+        installBtn.style.display = 'flex';
+        installBtn.addEventListener('click', installPWA);
+    }
+    
+    // Show install prompt after 5 seconds
+    setTimeout(showInstallPrompt, 5000);
+});
+
+function installPWA() {
+    if (!deferredPrompt) return;
+    
+    // Show the install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
+    deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+            showToast('App installed successfully!');
+            if (installBtn) installBtn.style.display = 'none';
+        } else {
+            console.log('User dismissed the install prompt');
+        }
+        deferredPrompt = null;
+    });
+}
+
+function showInstallPrompt() {
+    if (deferredPrompt && !localStorage.getItem('installPromptShown')) {
+        const prompt = document.createElement('div');
+        prompt.className = 'install-prompt';
+        prompt.innerHTML = `
+            <div class="install-prompt-content">
+                <h4><i class="fas fa-mobile-alt"></i> Install ENSO Dashboard</h4>
+                <p>Install this app on your device for quick access and offline use.</p>
+            </div>
+            <div class="install-prompt-actions">
+                <button class="btn btn-secondary" onclick="dismissInstallPrompt()">Later</button>
+                <button class="btn btn-primary" onclick="installPWA()">Install</button>
+            </div>
+        `;
+        document.body.appendChild(prompt);
+        prompt.style.display = 'flex';
+        localStorage.setItem('installPromptShown', 'true');
+    }
+}
+
+function dismissInstallPrompt() {
+    const prompt = document.querySelector('.install-prompt');
+    if (prompt) prompt.remove();
+}
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(registration => {
+                console.log('ServiceWorker registered: ', registration.scope);
+                
+                // Check for updates
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            showToast('New version available! Refresh to update.');
+                        }
+                    });
+                });
+            })
+            .catch(error => {
+                console.log('ServiceWorker registration failed: ', error);
+            });
+    });
+}
+
+// Online/Offline Detection
+window.addEventListener('online', () => {
+    document.getElementById('offlineIndicator').style.display = 'none';
+    showToast('Back online!');
+});
+
+window.addEventListener('offline', () => {
+    document.getElementById('offlineIndicator').style.display = 'block';
+});
+
+// Lock/Unlock System
+function checkLockStatus() {
+    const isLocked = localStorage.getItem('ensoDashboardLocked') === 'true';
+    const lockStatus = document.getElementById('lockStatus');
+    
+    if (lockStatus) {
+        if (isLocked) {
+            lockStatus.className = 'lock-status locked';
+            lockStatus.innerHTML = '<i class="fas fa-lock"></i> <span>Locked</span>';
+            
+            // Check if we're on admin page
+            if (!window.location.pathname.includes('admin-lock.html')) {
+                // Redirect to lock page if not already there
+                if (!window.location.pathname.includes('admin-lock.html')) {
+                    window.location.href = 'admin-lock.html';
+                }
+            }
+        } else {
+            lockStatus.className = 'lock-status';
+            lockStatus.innerHTML = '<i class="fas fa-lock-open"></i> <span>Unlocked</span>';
+        }
+    }
+    
+    return isLocked;
+}
+
+// Check lock status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // ... existing code ...
+    
+    // Check lock status
+    checkLockStatus();
+    
+    // Add offline indicator to body
+    const offlineIndicator = document.createElement('div');
+    offlineIndicator.id = 'offlineIndicator';
+    offlineIndicator.className = 'offline-indicator';
+    offlineIndicator.innerHTML = '<i class="fas fa-wifi-slash"></i> You are offline. Some features may be limited.';
+    offlineIndicator.style.display = 'none';
+    document.body.appendChild(offlineIndicator);
+});
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 3000);
+}
+
+// Export functions for bonus reports
+function generateBonusReport() {
+    const reports = JSON.parse(localStorage.getItem('ensoFullReports') || '[]');
+    const quickReports = JSON.parse(localStorage.getItem('ensoReports') || '[]');
+    
+    // Calculate monthly totals
+    const monthlyData = calculateMonthlyTotals(reports, quickReports);
+    
+    return monthlyData;
+}
+
+function calculateMonthlyTotals(fullReports, quickReports) {
+    const monthlyTotals = {};
+    
+    // Process full reports
+    fullReports.forEach(report => {
+        const month = report.date.substring(0, 7); // YYYY-MM
+        if (!monthlyTotals[month]) {
+            monthlyTotals[month] = {
+                bookings: 0,
+                revenue: 0,
+                incentives: 0,
+                messages: 0,
+                followups: 0,
+                jumiaOrders: 0,
+                partnershipLeads: 0,
+                days: 0
+            };
+        }
+        
+        monthlyTotals[month].bookings += report.bookings || 0;
+        monthlyTotals[month].revenue += report.revenue || 0;
+        monthlyTotals[month].incentives += report.incentives || 0;
+        monthlyTotals[month].messages += report.messages || 0;
+        monthlyTotals[month].followups += report.followups || 0;
+        monthlyTotals[month].jumiaOrders += report.jumiaOrders || 0;
+        monthlyTotals[month].partnershipLeads += report.partnershipLeads || 0;
+        monthlyTotals[month].days += 1;
+    });
+    
+    // Process quick reports for missing data
+    quickReports.forEach(report => {
+        const month = report.date.substring(0, 7);
+        if (!monthlyTotals[month]) {
+            monthlyTotals[month] = {
+                bookings: 0,
+                revenue: 0,
+                incentives: 0,
+                messages: 0,
+                followups: 0,
+                jumiaOrders: 0,
+                partnershipLeads: 0,
+                days: 0
+            };
+        }
+        
+        // Only add if not already in full reports
+        if (!fullReports.some(r => r.date === report.date)) {
+            monthlyTotals[month].bookings += report.bookings || 0;
+            monthlyTotals[month].messages += report.messages || 0;
+            monthlyTotals[month].followups += report.followups || 0;
+            monthlyTotals[month].jumiaOrders += report.jumiaOrders || 0;
+            monthlyTotals[month].partnershipLeads += report.partnershipLeads || 0;
+            monthlyTotals[month].days += 1;
+        }
+    });
+    
+    return monthlyTotals;
+}
+
+// Download PDF Report
+function downloadPDFReport(type = 'monthly') {
+    const data = generateBonusReport();
+    const today = new Date();
+    const currentMonth = today.toISOString().substring(0, 7);
+    
+    // Create PDF content
+    const pdfContent = generatePDFContent(data, type);
+    
+    // Create download link
+    const blob = new Blob([pdfContent], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.href = url;
+    link.download = `enso-${type}-report-${currentMonth}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} report downloaded!`, 'success');
+}
+
+// Generate PDF Content
+function generatePDFContent(data, type) {
+    // This is a simplified PDF generation
+    // In a real app, you would use a library like jsPDF or pdfmake
+    
+    const today = new Date().toLocaleDateString();
+    let content = `
+ENSO Consultancy & Services Ltd.
+${type.charAt(0).toUpperCase() + type.slice(1)} Bonus Report
+Generated: ${today}
+==================================================
+
+`;
+    
+    if (type === 'monthly') {
+        Object.entries(data).forEach(([month, totals]) => {
+            const bookingBonus = totals.bookings * 500;
+            const totalBonus = bookingBonus + (totals.incentives || 0);
+            
+            content += `
+Month: ${month}
+--------------------------------------------------
+Bookings: ${totals.bookings} (Bonus: KES ${bookingBonus.toLocaleString()})
+Revenue Generated: KES ${totals.revenue.toLocaleString()}
+Total Incentives: KES ${totals.incentives.toLocaleString()}
+Messages Sent: ${totals.messages}
+Follow-ups: ${totals.followups}
+Jumia Orders: ${totals.jumiaOrders}
+Partnership Leads: ${totals.partnershipLeads}
+Days Worked: ${totals.days}
+
+TOTAL BONUS EARNED: KES ${totalBonus.toLocaleString()}
+==================================================
+
+`;
+        });
+    } else {
+        // Daily report
+        const quickReports = JSON.parse(localStorage.getItem('ensoReports') || '[]');
+        quickReports.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        quickReports.slice(0, 30).forEach(report => {
+            const date = new Date(report.date).toLocaleDateString();
+            const bookingBonus = (report.bookings || 0) * 500;
+            
+            content += `
+Date: ${date}
+--------------------------------------------------
+Bookings: ${report.bookings || 0} (Bonus: KES ${bookingBonus.toLocaleString()})
+Messages: ${report.messages || 0}/20
+Follow-ups: ${report.followups || 0}/10
+Jumia Orders: ${report.jumiaOrders || 0}
+Partnership Leads: ${report.partnershipLeads || 0}
+
+`;
+        });
+    }
+    
+    content += `
+==================================================
+Base Salary: KES 35,000/month
+Booking Bonus: KES 500 per booking
+==================================================
+`;
+    
+    return content;
+}
+
+// Download Excel Report
+function downloadExcelReport(type = 'monthly') {
+    const data = generateBonusReport();
+    const today = new Date().toISOString().split('T')[0];
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    
+    if (type === 'monthly') {
+        csvContent += "Month,Bookings,Booking Bonus,Revenue,Other Incentives,Total Bonus,Messages,Follow-ups,Jumia Orders,Partnership Leads,Days Worked\n";
+        
+        Object.entries(data).forEach(([month, totals]) => {
+            const bookingBonus = totals.bookings * 500;
+            const totalBonus = bookingBonus + (totals.incentives || 0);
+            
+            csvContent += `${month},${totals.bookings},${bookingBonus},${totals.revenue},${totals.incentives || 0},${totalBonus},${totals.messages},${totals.followups},${totals.jumiaOrders},${totals.partnershipLeads},${totals.days}\n`;
+        });
+    } else {
+        csvContent += "Date,Bookings,Booking Bonus,Messages,Follow-ups,Jumia Orders,Partnership Leads,Response Time,Focus Area\n";
+        
+        const fullReports = JSON.parse(localStorage.getItem('ensoFullReports') || '[]');
+        fullReports.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        fullReports.forEach(report => {
+            const bookingBonus = (report.bookings || 0) * 500;
+            csvContent += `${report.date},${report.bookings || 0},${bookingBonus},${report.messages || 0},${report.followups || 0},${report.jumiaOrders || 0},${report.partnershipLeads || 0},${report.responseTime || ''},${report.focusArea || ''}\n`;
+        });
+    }
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `enso-${type}-report-${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} Excel report downloaded!`, 'success');
+}
+
 }
