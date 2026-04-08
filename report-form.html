@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Daily Report - ENSO Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .form-container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+        
+        .form-title {
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+        }
+        
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .counter-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .counter-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .counter-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--secondary-color);
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .counter-btn:hover {
+            background-color: #2980b9;
+            transform: scale(1.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .progress-summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .progress-summary h3 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .progress-item {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .progress-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .progress-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .achieved {
+            color: var(--success-color) !important;
+        }
+        
+        .not-achieved {
+            color: var(--accent-color) !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-container">
+            <div class="logo-section">
+                <h1><i class="fas fa-file-export"></i> Submit Daily Report</h1>
+                <p>Complete your daily accountability report</p>
+            </div>
+            <div class="date-indicator">
+                <div class="current-date" id="currentDate">Loading...</div>
+                <a href="index.html" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="form-container">
+            <h2 class="form-title"><i class="fas fa-clipboard-check"></i> Daily Performance Report</h2>
+            
+            <div class="progress-summary">
+                <h3>Today's Quick Overview</h3>
+                <div class="progress-grid" id="progressOverview">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <form id="dailyReportForm">
+                <!-- Daily Non-Negotiables -->
+                <div class="form-group">
+                    <h3><i class="fas fa-exclamation-circle"></i> Daily Non-Negotiables</h3>
+                    <div class="form-row">
+                        <div class="form-item">
+                            <label class="form-label">Response Time Performance</label>
+                            <select class="form-select" id="responseTime" required>
+                                <option value="">Select performance</option>
+                                <option value="excellent">Excellent (All within 10 mins)</option>
+                                <option value="good">Good (Most within 10 mins)</option>
+                                <option value="fair">Fair (Some delays)</option>
+                                <option value="poor">Poor (Frequent delays)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-item">
+                            <label class="form-label">Outbound Messages Sent</label>
+                            <div class="counter-group">
+                                <button type="button" class="counter-btn minus" onclick="adjustFormCounter('messagesSent', -1)">-</button>
+                                <div class="counter-display" id="messagesSent">20</div>
+                                <button type="button" class="counter-btn plus" onclick="adjustFormCounter('messagesSent', 1)">+</button>
+                            </div>
+                            <small>Target: 20 messages</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-item">
+                            <label class="form-label">Follow-ups Completed</label>
+                            <div class="counter-group">
+                                <button type="button" class="counter-btn minus" onclick="adjustFormCounter('followupsCompleted', -1)">-</button>
+                                <div class="counter-display" id="followupsCompleted">10</div>
+                                <button type="button" class="counter-btn plus" onclick="adjustFormCounter('followupsCompleted', 1)">+</button>
+                            </div>
+                            <small>Target: 10 follow-ups</small>
+                        </div>
+                        
+                        <div class="form-item">
+                            <label class="form-label">Bookings Closed</label>
+                            <div class="counter-group">
+                                <button type="button" class="counter-btn minus" onclick="adjustFormCounter('bookingsClosed', -1)">-</button>
+                                <div class="counter-display" id="bookingsClosed">0</div>
+                                <button type="button" class="counter-btn plus" onclick="adjustFormCounter('bookingsClosed', 1)">+</button>
+                            </div>
+                            <small>Target: Minimum 2 bookings</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Weekly Focus -->
+                <div class="form-group">
+                    <h3><i class="fas fa-calendar-week"></i> Weekly Focus Activities</h3>
+                    <div class="form-row">
+                        <div class="form-item">
+                            <label class="form-label">Jumia Orders Processed</label>
+                            <input type="number" class="form-input" id="jumiaOrders" min="0" value="0" required>
+                        </div>
+                        
+                        <div class="form-item">
+                            <label class="form-label">Partnership Leads Generated</label>
+                            <input type="number" class="form-input" id="partnershipLeads" min="0" value="0" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-item">
+                        <label class="form-label">Today's Focus Area</label>
+                        <select class="form-select" id="focusArea" required>
+                            <option value="">Select focus area</option>
+                            <option value="outreach">Outreach (Partnerships)</option>
+                            <option value="jumia">Jumia / Sales</option>
+                            <option value="events">Events / Content</option>
+                            <option value="mixed">Mixed Activities</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-item">
+                        <label class="form-label">Locations Visited (if applicable)</label>
+                        <input type="text" class="form-input" id="locationsVisited" placeholder="e.g., Gym XYZ, Spa ABC">
+                    </div>
+                </div>
+                
+                <!-- Revenue & Financials -->
+                <div class="form-group">
+                    <h3><i class="fas fa-money-bill-wave"></i> Revenue & Financials</h3>
+                    <div class="form-row">
+                        <div class="form-item">
+                            <label class="form-label">Revenue Generated (KES)</label>
+                            <input type="number" class="form-input" id="revenueGenerated" min="0" value="0" required>
+                        </div>
+                        
+                        <div class="form-item">
+                            <label class="form-label">Incentives Earned Today (KES)</label>
+                            <input type="number" class="form-input" id="incentivesEarned" min="0" value="0" required>
+                            <small>Booking bonuses: KES 500 per booking</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notes & Challenges -->
+                <div class="form-group">
+                    <h3><i class="fas fa-sticky-note"></i> Notes & Challenges</h3>
+                    <div class="form-item">
+                        <label class="form-label">Key Achievements Today</label>
+                        <textarea class="form-textarea" id="achievements" placeholder="What went well today? What did you accomplish?" required></textarea>
+                    </div>
+                    
+                    <div class="form-item">
+                        <label class="form-label">Challenges Faced</label>
+                        <textarea class="form-textarea" id="challenges" placeholder="Any difficulties or obstacles encountered?" required></textarea>
+                    </div>
+                    
+                    <div class="form-item">
+                        <label class="form-label">Tomorrow's Priority Tasks</label>
+                        <textarea class="form-textarea" id="tomorrowPriorities" placeholder="What are the top 3 priorities for tomorrow?" required></textarea>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="loadFromQuickSave()">
+                        <i class="fas fa-sync"></i> Load Quick Save
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                        <i class="fas fa-save"></i> Save Draft
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Submit Daily Report
+                    </button>
+                </div>
+            </form>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="index.html" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard without submitting
+                </a>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-section">
+                <h4>ENSO Daily Reporting</h4>
+                <p>Complete this form daily to track performance and achievements.</p>
+                <p><small>All data is saved locally in your browser.</small></p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Actions</h4>
+                <ul>
+                    <li><a href="index.html">Dashboard Home</a></li>
+                    <li><a href="#" onclick="exportReportData()">Export All Reports</a></li>
+                    <li><a href="#" onclick="clearAllData()">Clear All Data</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Data Status</h4>
+                <p><span class="status-indicator active" id="formDataStatus"></span> <span id="formStatusText">Ready to submit</span></p>
+                <p><small>Last saved: <span id="formLastSaved">Never</span></small></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 ENSO Consultancy & Services Ltd. | Daily Reporting System</p>
+        </div>
+    </footer>
+    
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeSuccessModal()">&times;</span>
+            <h2><i class="fas fa-check-circle" style="color: #27ae60;"></i> Report Submitted Successfully!</h2>
+            <div class="modal-summary">
+                <p>Your daily report has been saved successfully.</p>
+                <div id="reportSummary"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="location.href='index.html'">
+                    <i class="fas fa-tachometer-alt"></i> Return to Dashboard
+                </button>
+                <button class="btn btn-secondary" onclick="printReport()">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+            
+            // Load any saved draft
+            loadDraft();
+            
+            // Update progress overview
+            updateProgressOverview();
+            
+            // Load data from quick save (if exists)
+            loadFromQuickSave();
+            
+            // Form submission
+            document.getElementById('dailyReportForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitDailyReport();
+            });
+        });
+        
+        // Counter adjustment for form
+        function adjustFormCounter(elementId, change) {
+            const element = document.getElementById(elementId);
+            let value = parseInt(element.textContent) + change;
+            value = Math.max(0, value);
+            
+            // Set minimums for targets
+            if (elementId === 'messagesSent' && value < 20) value = 20;
+            if (elementId === 'followupsCompleted' && value < 10) value = 10;
+            
+            element.textContent = value;
+            updateProgressOverview();
+        }
+        
+        // Update progress overview
+        function updateProgressOverview() {
+            const messages = parseInt(document.getElementById('messagesSent').textContent);
+            const followups = parseInt(document.getElementById('followupsCompleted').textContent);
+            const bookings = parseInt(document.getElementById('bookingsClosed').textContent);
+            
+            const progressGrid = document.getElementById('progressOverview');
+            progressGrid.innerHTML = `
+                <div class="progress-item">
+                    <div class="progress-value ${messages >= 20 ? 'achieved' : 'not-achieved'}">${messages}/20</div>
+                    <div class="progress-label">Messages</div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-value ${followups >= 10 ? 'achieved' : 'not-achieved'}">${followups}/10</div>
+                    <div class="progress-label">Follow-ups</div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-value ${bookings >= 2 ? 'achieved' : 'not-achieved'}">${bookings}/2</div>
+                    <div class="progress-label">Bookings</div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-value">${document.getElementById('jumiaOrders').value}</div>
+                    <div class="progress-label">Jumia Orders</div>
+                </div>
+            `;
+        }
+        
+        // Load data from quick save (localStorage)
+        function loadFromQuickSave() {
+            const today = new Date().toISOString().split('T')[0];
+            const reports = JSON.parse(localStorage.getItem('ensoReports') || '[]');
+            const todayReport = reports.find(report => report.date === today);
+            
+            if (todayReport) {
+                document.getElementById('messagesSent').textContent = todayReport.messages || 20;
+                document.getElementById('followupsCompleted').textContent = todayReport.followups || 10;
+                document.getElementById('bookingsClosed').textContent = todayReport.bookings || 0;
+                document.getElementById('jumiaOrders').value = todayReport.jumiaOrders || 0;
+                document.getElementById('partnershipLeads').value = todayReport.partnershipLeads || 0;
+                
+                updateProgressOverview();
+                showNotification('Data loaded from quick save!', 'success');
+            } else {
+                showNotification('No quick save data found for today.', 'warning');
+            }
+        }
+        
+        // Save draft to localStorage
+        function saveDraft() {
+            const formData = getFormData();
+            localStorage.setItem('ensoReportDraft', JSON.stringify(formData));
+            
+            document.getElementById('formLastSaved').textContent = new Date().toLocaleTimeString();
+            document.getElementById('formStatusText').textContent = 'Draft saved';
+            
+            showNotification('Draft saved successfully!', 'success');
+        }
+        
+        // Load draft from localStorage
+        function loadDraft() {
+            const draft = JSON.parse(localStorage.getItem('ensoReportDraft') || '{}');
+            
+            if (Object.keys(draft).length > 0) {
+                document.getElementById('messagesSent').textContent = draft.messages || 20;
+                document.getElementById('followupsCompleted').textContent = draft.followups || 10;
+                document.getElementById('bookingsClosed').textContent = draft.bookings || 0;
+                document.getElementById('jumiaOrders').value = draft.jumiaOrders || 0;
+                document.getElementById('partnershipLeads').value = draft.partnershipLeads || 0;
+                document.getElementById('revenueGenerated').value = draft.revenue || 0;
+                document.getElementById('incentivesEarned').value = draft.incentives || 0;
+                document.getElementById('responseTime').value = draft.responseTime || '';
+                document.getElementById('focusArea').value = draft.focusArea || '';
+                document.getElementById('locationsVisited').value = draft.locations || '';
+                document.getElementById('achievements').value = draft.achievements || '';
+                document.getElementById('challenges').value = draft.challenges || '';
+                document.getElementById('tomorrowPriorities').value = draft.priorities || '';
+                
+                document.getElementById('formStatusText').textContent = 'Draft loaded';
+                document.getElementById('formLastSaved').textContent = 'Previously saved';
+                
+                updateProgressOverview();
+            }
+        }
+        
+        // Get form data
+        function getFormData() {
+            return {
+                messages: parseInt(document.getElementById('messagesSent').textContent),
+                followups: parseInt(document.getElementById('followupsCompleted').textContent),
+                bookings: parseInt(document.getElementById('bookingsClosed').textContent),
+                jumiaOrders: parseInt(document.getElementById('jumiaOrders').value) || 0,
+                partnershipLeads: parseInt(document.getElementById('partnershipLeads').value) || 0,
+                revenue: parseInt(document.getElementById('revenueGenerated').value) || 0,
+                incentives: parseInt(document.getElementById('incentivesEarned').value) || 0,
+                responseTime: document.getElementById('responseTime').value,
+                focusArea: document.getElementById('focusArea').value,
+                locations: document.getElementById('locationsVisited').value,
+                achievements: document.getElementById('achievements').value,
+                challenges: document.getElementById('challenges').value,
+                priorities: document.getElementById('tomorrowPriorities').value,
+                timestamp: new Date().toISOString()
+            };
+        }
+        
+        // Submit daily report
+        function submitDailyReport() {
+            const formData = getFormData();
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Create report object
+            const report = {
+                date: today,
+                ...formData,
+                submittedAt: new Date().toISOString()
+            };
+            
+            // Get existing reports
+            let reports = JSON.parse(localStorage.getItem('ensoFullReports') || '[]');
+            
+            // Check if today's report already exists
+            const existingIndex = reports.findIndex(r => r.date === today);
+            if (existingIndex >= 0) {
+                reports[existingIndex] = report;
+            } else {
+                reports.push(report);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('ensoFullReports', JSON.stringify(reports));
+            
+            // Also update quick save data
+            let quickReports = JSON.parse(localStorage.getItem('ensoReports') || '[]');
+            const quickReportIndex = quickReports.findIndex(r => r.date === today);
+            
+            const quickData = {
+                date: today,
+                bookings: report.bookings,
+                messages: report.messages,
+                followups: report.followups,
+                jumiaOrders: report.jumiaOrders,
+                partnershipLeads: report.partnershipLeads,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (quickReportIndex >= 0) {
+                quickReports[quickReportIndex] = quickData;
+            } else {
+                quickReports.push(quickData);
+            }
+            
+            localStorage.setItem('ensoReports', JSON.stringify(quickReports));
+            
+            // Clear draft
+            localStorage.removeItem('ensoReportDraft');
+            
+            // Show success modal
+            showSuccessModal(report);
+        }
+        
+        // Show success modal
+        function showSuccessModal(report) {
+            const summary = document.getElementById('reportSummary');
+            const score = calculateReportScore(report);
+            
+            summary.innerHTML = `
+                <div class="summary-grid">
+                    <div class="summary-metric">
+                        <span class="metric-label">Performance Score</span>
+                        <span class="metric-value ${score >= 80 ? 'achieved' : ''}">${score}%</span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="metric-label">Bookings Closed</span>
+                        <span class="metric-value ${report.bookings >= 2 ? 'achieved' : ''}">${report.bookings}/2</span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="metric-label">Revenue Generated</span>
+                        <span class="metric-value">KES ${report.revenue.toLocaleString()}</span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="metric-label">Incentives Earned</span>
+                        <span class="metric-value">KES ${report.incentives.toLocaleString()}</span>
+                    </div>
+                </div>
+                <p style="margin-top: 15px;">Report saved for ${new Date().toLocaleDateString()}</p>
+            `;
+            
+            document.getElementById('successModal').style.display = 'flex';
+        }
+        
+        function closeSuccessModal() {
+            document.getElementById('successModal').style.display = 'none';
+        }
+        
+        // Calculate report score
+        function calculateReportScore(report) {
+            let score = 0;
+            
+            // Bookings (40 points)
+            score += Math.min((report.bookings / 2) * 40, 40);
+            
+            // Messages (30 points)
+            score += Math.min((report.messages / 20) * 30, 30);
+            
+            // Follow-ups (20 points)
+            score += Math.min((report.followups / 10) * 20, 20);
+            
+            // Response time (10 points)
+            if (report.responseTime === 'excellent') score += 10;
+            else if (report.responseTime === 'good') score += 7;
+            else if (report.responseTime === 'fair') score += 4;
+            
+            return Math.round(score);
+        }
+        
+        // Export all report data
+        function exportReportData() {
+            const fullReports = JSON.parse(localStorage.getItem('ensoFullReports') || '[]');
+            const quickReports = JSON.parse(localStorage.getItem('ensoReports') || '[]');
+            
+            const exportData = {
+                fullReports: fullReports,
+                quickReports: quickReports,
+                exportedAt: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `enso-full-reports-${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+        
+        // Clear all data
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear ALL report data? This action cannot be undone.')) {
+                localStorage.removeItem('ensoReports');
+                localStorage.removeItem('ensoFullReports');
+                localStorage.removeItem('ensoReportDraft');
+                
+                // Reset form
+                document.getElementById('dailyReportForm').reset();
+                document.getElementById('messagesSent').textContent = '20';
+                document.getElementById('followupsCompleted').textContent = '10';
+                document.getElementById('bookingsClosed').textContent = '0';
+                
+                updateProgressOverview();
+                showNotification('All data has been cleared.', 'success');
+            }
+        }
+        
+        // Print report
+        function printReport() {
+            window.print();
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()">&times;</button>
+            `;
+            
+            // Add styles if not already added
+            if (!document.querySelector('#notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    .notification {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        padding: 15px 20px;
+                        border-radius: 6px;
+                        color: white;
+                        z-index: 1000;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        min-width: 300px;
+                        max-width: 400px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        animation: slideIn 0.3s ease;
+                    }
+                    .notification.success { background-color: #27ae60; }
+                    .notification.warning { background-color: #f39c12; }
+                    .notification.info { background-color: #3498db; }
+                    .notification button {
+                        background: none;
+                        border: none;
+                        color: white;
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                        padding: 0 0 0 15px;
+                    }
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+        
+        // Update form inputs to trigger progress update
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('change', updateProgressOverview);
+            element.addEventListener('input', updateProgressOverview);
+        });
+    </script>
+</body>
+</html>
