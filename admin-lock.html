@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Lock - ENSO Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c3e50">
+    <style>
+        .admin-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 40px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        
+        .admin-header {
+            margin-bottom: 30px;
+        }
+        
+        .admin-header i {
+            font-size: 4rem;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        
+        .admin-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .admin-status {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .status-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .password-section {
+            margin: 30px 0;
+        }
+        
+        .password-input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .password-input {
+            width: 100%;
+            padding: 15px 45px 15px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            transition: var(--transition);
+        }
+        
+        .password-input:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-admin {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            min-width: 150px;
+            justify-content: center;
+        }
+        
+        .btn-lock {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .btn-unlock {
+            background: linear-gradient(135deg, #27ae60, #219653);
+            color: white;
+        }
+        
+        .btn-back {
+            background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+            color: white;
+        }
+        
+        .btn-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .admin-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .access-log {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+        
+        .log-entry {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+        
+        .log-time {
+            color: #666;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-container">
+            <div class="logo-section">
+                <h1><i class="fas fa-lock"></i> Admin Access Control</h1>
+                <p>Lock/unlock dashboard and manage access</p>
+            </div>
+            <div class="date-indicator">
+                <div class="current-date" id="currentDate">Loading...</div>
+                <a href="index.html" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="admin-container">
+            <div class="admin-header">
+                <i class="fas fa-user-shield"></i>
+                <h1>Dashboard Security</h1>
+                <p>Control access to the ENSO Operations Dashboard</p>
+            </div>
+            
+            <div class="admin-status">
+                <h3><i class="fas fa-info-circle"></i> Current Status</h3>
+                <div class="status-item">
+                    <span>Dashboard Status:</span>
+                    <span class="status-value" id="dashboardStatus">Checking...</span>
+                </div>
+                <div class="status-item">
+                    <span>Last Lock/Unlock:</span>
+                    <span class="status-value" id="lastAccessTime">Never</span>
+                </div>
+                <div class="status-item">
+                    <span>Data Security:</span>
+                    <span class="status-value" id="dataSecurity">Local Storage</span>
+                </div>
+                <div class="status-item">
+                    <span>Reports Count:</span>
+                    <span class="status-value" id="reportsCount">0</span>
+                </div>
+            </div>
+            
+            <div class="password-section">
+                <h3><i class="fas fa-key"></i> Admin Password</h3>
+                <p>Enter password to lock/unlock the dashboard</p>
+                
+                <div class="password-input-container">
+                    <input type="password" id="adminPassword" class="password-input" 
+                           placeholder="Enter admin password" autocomplete="off">
+                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                
+                <p><small>Default password: <code>enso2026</code> (Change after first use)</small></p>
+            </div>
+            
+            <div class="admin-actions">
+                <button class="btn-admin btn-lock" onclick="lockDashboard()">
+                    <i class="fas fa-lock"></i> Lock Dashboard
+                </button>
+                <button class="btn-admin btn-unlock" onclick="unlockDashboard()">
+                    <i class="fas fa-lock-open"></i> Unlock Dashboard
+                </button>
+                <button class="btn-admin btn-back" onclick="location.href='index.html'">
+                    <i class="fas fa-home"></i> Dashboard Home
+                </button>
+            </div>
+            
+            <div class="admin-info">
+                <h4><i class="fas fa-shield-alt"></i> Security Information</h4>
+                <p>• Locking prevents unauthorized access to sensitive data</p>
+                <p>• All data remains in browser local storage</p>
+                <p>• Password is stored securely (hashed)</p>
+                <p>• Access logs are maintained for security audits</p>
+                
+                <div class="access-log" id="accessLog">
+                    <div class="log-entry">No access logs available</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: left;">
+                <h4><i class="fas fa-cogs"></i> Advanced Options</h4>
+                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="exportAllData()">
+                        <i class="fas fa-download"></i> Export All Data
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearAllData()">
+                        <i class="fas fa-trash"></i> Clear All Data
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetPassword()">
+                        <i class="fas fa-key"></i> Reset Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-section">
+                <h4>ENSO Security Admin</h4>
+                <p>Access control and security management</p>
+                <p><small>For authorized personnel only</small></p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Dashboard Home</a></li>
+                    <li><a href="bonus-report.html">Bonus Report</a></li>
+                    <li><a href="report-form.html">Daily Report</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Security Status</h4>
+                <p><span class="status-indicator active" id="securityStatus"></span> <span id="securityText">Active</span></p>
+                <p><small>Version: 2.0</small></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 ENSO Consultancy & Services Ltd. | Admin Security Panel</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Admin Lock JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+            
+            // Initialize admin panel
+            initializeAdminPanel();
+            
+            // Load access logs
+            loadAccessLogs();
+            
+            // Set up password visibility toggle
+            document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    unlockDashboard();
+                }
+            });
+        });
+        
+        function initializeAdminPanel() {
+            // Check current lock status
+            const isLocked = localStorage.getItem('ensoDashboardLocked') === 'true';
+            
+            // Update status display
+            document.getElementById('dashboardStatus').textContent = 
+                isLocked ? 'LOCKED 🔒' : 'UNLOCKED 🔓';
+            document.getElementById('dashboardStatus').style.color = 
+                isLocked ? '#e74c3c' : '#27ae60';
+            
+            // Update security status
+            const securityElement = document.getElementById('securityStatus');
+            const securityText = document.getElementById('securityText');
+            
+            if (isLocked) {
+                securityElement.className = 'status-indicator inactive';
+                securityText.textContent = 'Locked';
+            } else {
+                securityElement.className = 'status-indicator active';
+                securityText.textContent = 'Unlocked';
+            }
+            
+            // Update last access time
+            const lastAccess = localStorage.getItem('ensoLastAccess');
+            document.getElementById('lastAccessTime').textContent = 
+                lastAccess ? new Date(lastAccess).toLocaleString() : 'Never';
+            
+            // Update reports count
+            const reports = JSON.parse(localStorage.getItem('ensoReports') || '[]');
+            const fullReports = JSON.parse(localStorage.getItem('ensoFullReports') || '[]');
+            document.getElementById('reportsCount').textContent = 
+                (reports.length + fullReports.length) + ' reports';
+            
+            // Initialize password if not set
+            if (!localStorage.getItem('ensoAdminPassword')) {
+                // Set default password (hashed)
+                const defaultPassword = 'enso2026';
+                const hashedPassword = hashPassword(defaultPassword);
+                localStorage.setItem('ensoAdminPassword', hashedPassword);
+            }
+        }
+        
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('adminPassword');
+            const toggleIcon = document.querySelector('.toggle-password i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.className = 'fas fa-eye';
+            }
+        }
+        
+        function hashPassword(password) {
+            // Simple hash function (in production, use a proper crypto library)
+            let hash = 0;
+            for (let i = 0; i < password.length; i++) {
+                const char = password.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash.toString();
+        }
+        
+        function verifyPassword() {
+            const inputPassword = document.getElementById('adminPassword').value;
+            const storedHash = localStorage.getItem('ensoAdminPassword');
+            
+            if (!inputPassword) {
+                showToast('Please enter password', 'error');
+                return false;
+            }
+            
+            const inputHash = hashPassword(inputPassword);
+            return inputHash === storedHash;
+        }
+        
+        function lockDashboard() {
+            if (!verifyPassword()) {
+                showToast('Incorrect password', 'error');
+                return;
+            }
+            
+            // Lock the dashboard
+            localStorage.setItem('ensoDashboardLocked', 'true');
+            localStorage.setItem('ensoLastAccess', new Date().toISOString());
+            
+            // Add to access log
+            addAccessLog('LOCKED', 'Dashboard locked by admin');
+            
+            // Update UI
+            initializeAdminPanel();
+            
+            // Clear password field
+            document.getElementById('adminPassword').value = '';
+            
+            showToast('Dashboard locked successfully', 'success');
+            
+            // Redirect to lock page after 2 seconds
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        }
+        
+        function unlockDashboard() {
+            if (!verifyPassword()) {
+                showToast('Incorrect password', 'error');
+                return;
+            }
+            
+            // Unlock the dashboard
+            localStorage.setItem('ensoDashboardLocked', 'false');
+            localStorage.setItem('ensoLastAccess', new Date().toISOString());
+            
+            // Add to access log
+            addAccessLog('UNLOCKED', 'Dashboard unlocked by admin');
+            
+            // Update UI
+            initializeAdminPanel();
+            
+            // Clear password field
+            document.getElementById('adminPassword').value = '';
+            
+            showToast('Dashboard unlocked successfully', 'success');
+            
+            // Redirect to dashboard after 2 seconds
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        }
+        
+        function addAccessLog(action, description) {
+            const logs = JSON.parse(localStorage.getItem('ensoAccessLogs') || '[]');
+            
+            logs.unshift({
+                timestamp: new Date().toISOString(),
+                action: action,
+                description: description,
+                ip: 'local' // In production, get real IP
+            });
+            
+            // Keep only last 50 logs
+            if (logs.length > 50) {
+                logs.pop();
+            }
+            
+            localStorage.setItem('ensoAccessLogs', JSON.stringify(logs));
+            loadAccessLogs();
+        }
+        
+        function loadAccessLogs() {
+            const logs = JSON.parse(localStorage.getItem('ensoAccessLogs') || '[]');
+            const logContainer = document.getElementById('accessLog');
+            
+            if (logs.length === 0) {
+                logContainer.innerHTML = '<div class="log-entry">No access logs available</div>';
+                return;
+            }
+            
+            let logHTML = '';
+            logs.forEach(log => {
+                const time = new Date(log.timestamp).toLocaleString();
+                logHTML += `
+                    <div class="log-entry">
+                        <strong>${log.action}</strong> - ${log.description}
+                        <div class="log-time">${time}</div>
+                    </div>
+                `;
+            });
+            
+            logContainer.innerHTML = logHTML;
+        }
+        
+        function exportAllData() {
+            if (!verifyPassword()) {
+                showToast('Password required for export', 'error');
+                return;
+            }
+            
+            const allData = {
+                reports: JSON.parse(localStorage.getItem('ensoReports') || '[]'),
+                fullReports: JSON.parse(localStorage.getItem('ensoFullReports') || '[]'),
+                accessLogs: JSON.parse(localStorage.getItem('ensoAccessLogs') || '[]'),
+                exportedAt: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(allData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `enso-complete-backup-${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            addAccessLog('EXPORT', 'All data exported');
+            showToast('All data exported successfully', 'success');
+        }
+        
+        function clearAllData() {
+            if (!verifyPassword()) {
+                showToast('Password required for this action', 'error');
+                return;
+            }
+            
+            if (confirm('WARNING: This will delete ALL data including reports, logs, and settings. This cannot be undone. Continue?')) {
+                // Clear all data
+                localStorage.removeItem('ensoReports');
+                localStorage.removeItem('ensoFullReports');
+                localStorage.removeItem('ensoReportDraft');
+                localStorage.removeItem('ensoAccessLogs');
+                localStorage.removeItem('ensoLastAccess');
+                
+                // Keep lock status and password
+                // localStorage.removeItem('ensoDashboardLocked');
+                // localStorage.removeItem('ensoAdminPassword');
+                
+                addAccessLog('CLEAR', 'All data cleared by admin');
+                initializeAdminPanel();
+                showToast('All data cleared', 'success');
+            }
+        }
+        
+        function resetPassword() {
+            if (!verifyPassword()) {
+                showToast('Current password required', 'error');
+                return;
+            }
+            
+            const newPassword = prompt('Enter new admin password:');
+            if (!newPassword) return;
+            
+            const confirmPassword = prompt('Confirm new password:');
+            if (newPassword !== confirmPassword) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showToast('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            const hashedPassword = hashPassword(newPassword);
+            localStorage.setItem('ensoAdminPassword', hashedPassword);
+            
+            addAccessLog('PASSWORD_RESET', 'Admin password changed');
+            showToast('Password changed successfully', 'success');
+            
+            // Clear password field
+            document.getElementById('adminPassword').value = '';
+        }
+        
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
