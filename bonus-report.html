@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonus Report - ENSO Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c3e50">
+    <style>
+        .report-period-selector {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+        }
+        
+        .period-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .period-btn {
+            padding: 10px 20px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .period-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .period-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .bonus-breakdown {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+        }
+        
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .breakdown-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .breakdown-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        
+        .breakdown-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .bonus-calculations {
+            background: #fff9e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .calculation-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+        
+        .total-bonus {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #27ae60;
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #e8f6f3;
+            border-radius: 8px;
+        }
+        
+        .download-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .export-format {
+            text-align: center;
+            margin: 20px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-container">
+            <div class="logo-section">
+                <h1><i class="fas fa-money-bill-wave"></i> Bonus Report</h1>
+                <p>Monthly incentives and performance calculations</p>
+            </div>
+            <div class="date-indicator">
+                <div class="current-date" id="currentDate">Loading...</div>
+                <div class="lock-status" id="lockStatus">
+                    <i class="fas fa-lock-open"></i> <span>Unlocked</span>
+                </div>
+                <a href="index.html" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <nav class="main-nav">
+            <div class="container">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="report-form.html"><i class="fas fa-clipboard-list"></i> Daily Report</a></li>
+                    <li><a href="#bonus" class="active"><i class="fas fa-money-bill-wave"></i> Bonus Report</a></li>
+                    <li><a href="admin-lock.html" class="nav-lock"><i class="fas fa-lock"></i> Admin</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="container">
+        <section class="bonus-card">
+            <h2 class="section-title"><i class="fas fa-calculator"></i> Bonus Calculations</h2>
+            <p>Track your monthly performance and calculate earned incentives based on the consultancy agreement.</p>
+            
+            <div class="report-period-selector">
+                <h3>Select Report Period</h3>
+                <div class="period-buttons">
+                    <button class="period-btn active" onclick="showPeriod('current')">Current Month</button>
+                    <button class="period-btn" onclick="showPeriod('last')">Last Month</button>
+                    <button class="period-btn" onclick="showPeriod('quarter')">This Quarter</button>
+                    <button class="period-btn" onclick="showPeriod('custom')">Custom Range</button>
+                </div>
+                
+                <div id="customRange" style="display: none; margin-top: 20px;">
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <div>
+                            <label>Start Date:</label>
+                            <input type="date" id="startDate" class="form-input" style="width: 200px;">
+                        </div>
+                        <div>
+                            <label>End Date:</label>
+                            <input type="date" id="endDate" class="form-input" style="width: 200px;">
+                        </div>
+                        <button class="btn btn-primary" onclick="applyCustomRange()">Apply</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bonus-summary" id="bonusSummary">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="bonus-calculations">
+                <h3><i class="fas fa-calculator"></i> Bonus Breakdown</h3>
+                <div id="bonusBreakdown">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                
+                <div class="total-bonus" id="totalBonus">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="export-format">
+                <p><i class="fas fa-info-circle"></i> Reports include base salary (KES 35,000) + booking bonuses (KES 500/booking) + other incentives</p>
+            </div>
+            
+            <div class="download-options">
+                <button class="download-btn pdf" onclick="downloadPDFReport('monthly')">
+                    <i class="fas fa-file-pdf"></i> Download PDF Report
+                </button>
+                <button class="download-btn excel" onclick="downloadExcelReport('monthly')">
+                    <i class="fas fa-file-excel"></i> Download Excel Report
+                </button>
+                <button class="download-btn" onclick="downloadPDFReport('daily')">
+                    <i class="fas fa-calendar-day"></i> Daily Report PDF
+                </button>
+                <button class="download-btn" onclick="printBonusReport()">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+            </div>
+        </section>
+        
+        <section class="bonus-breakdown">
+            <h2 class="section-title"><i class="fas fa-chart-pie"></i> Performance Breakdown</h2>
+            <div class="breakdown-grid" id="performanceBreakdown">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </section>
+        
+        <section class="bonus-card">
+            <h2 class="section-title"><i class="fas fa-trophy"></i> Incentive Structure</h2>
+            <div class="agreement-grid">
+                <div class="agreement-card">
+                    <h3><i class="fas fa-money-bill-wave"></i> Base Compensation</h3>
+                    <p><strong>Monthly Base:</strong> KES 35,000</p>
+                    <p><strong>Payment Terms:</strong> Monthly, subject to performance</p>
+                    <p><strong>Tax:</strong> Withholding tax applicable</p>
+                </div>
+                <div class="agreement-card">
+                    <h3><i class="fas fa-calendar-check"></i> Booking Bonuses</h3>
+                    <p><strong>Per Booking:</strong> KES 500</p>
+                    <p><strong>Daily Target:</strong> Minimum 2 bookings</p>
+                    <p><strong>Monthly Target:</strong> 40-60 bookings</p>
+                    <p><strong>Potential Bonus:</strong> KES 20,000 - 30,000</p>
+                </div>
+                <div class="agreement-card">
+                    <h3><i class="fas fa-handshake"></i> Partnership Bonuses</h3>
+                    <p><strong>Monthly Target:</strong> 8-12 partnerships</p>
+                    <p><strong>Bonus Structure:</strong> Variable based on value</p>
+                    <p><strong>Payment:</strong> Upon successful partnership</p>
+                </div>
+                <div class="agreement-card">
+                    <h3><i class="fas fa-chart-line"></i> Jumia Growth Bonus</h3>
+                    <p><strong>Based On:</strong> Sales growth percentage</p>
+                    <p><strong>Calculation:</strong> Compared to previous month</p>
+                    <p><strong>Payment:</strong> Monthly with performance review</p>
+                </div>
+            </div>
+        </section>
+        
+        <div class="key-rule-banner">
+            <div class="key-rule-content">
+                <i class="fas fa-calculator"></i>
+                <div>
+                    <h3>BONUS CALCULATION</h3>
+                    <p>Total Earnings = Base Salary + Booking Bonuses + Partnership Bonuses + Jumia Growth Bonus</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-section">
+                <h4>ENSO Bonus Reporting</h4>
+                <p>Monthly incentive calculations and performance tracking.</p>
+                <p><small>All calculations based on consultancy agreement terms.</small></p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Actions</h4>
+                <ul>
+                    <li><a href="index.html">Dashboard Home</a></li>
+                    <li><a href="report-form.html">Submit Daily Report</a></li>
+                    <li><a href="#" onclick="clearAllData()">Clear All Data</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Report Status</h4>
+                <p><span class="status-indicator active"></span> <span id="reportStatus">Ready</span></p>
+                <p><small>Last calculated: <span id="lastCalculated">Never</span></small></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 ENSO Consultancy & Services Ltd. | Bonus Reporting System v2.0</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Bonus Report JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+            
+            // Check lock status
+            checkLockStatus();
+            
+            // Load and display bonus data
+            loadBonusData();
+            
+            // Initialize period buttons
+            initializePeriodButtons();
+            
+            // Update last calculated time
+            document.getElementById('lastCalculated').textContent = new Date().toLocaleTimeString();
+        });
+        
+        function initializePeriodButtons() {
+            const buttons = document.querySelectorAll('.period-btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Show/hide custom range
+                    if (this.textContent.includes('Custom')) {
+                        document.getElementById('customRange').style.display = 'block';
+                    } else {
+                        document.getElementById('customRange').style.display = 'none';
+                    }
+                    
+                    // Reload data for selected period
+                    loadBonusData(this.textContent.toLowerCase());
+                });
+            });
+        }
+        
+        function showPeriod(period) {
+            const buttons = document.querySelectorAll('.period-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Find and activate the correct button
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(period)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Show/hide custom range
+            if (period === 'custom') {
+                document.getElementById('customRange').style.display = 'block';
+            } else {
+                document.getElementById('customRange').style.display = 'none';
+            }
+            
+            loadBonusData(period);
+        }
+        
+        function applyCustomRange() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                showToast('Please select both start and end dates.', 'error');
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                showToast('Start date must be before end date.', 'error');
+                return;
+            }
+            
+            loadBonusData('custom', startDate, endDate);
+        }
+        
+        function loadBonusData(period = 'current', startDate = null, endDate = null) {
+            const reports = JSON.parse(localStorage.getItem('ensoFullReports') || '[]');
+            const quickReports = JSON.parse(localStorage.getItem('ensoReports') || '[]');
+            
+            // Filter reports based on period
+            let filteredReports = filterReportsByPeriod(reports, quickReports, period, startDate, endDate);
+            
+            // Calculate totals
+            const totals = calculateBonusTotals(filteredReports);
+            
+            // Update UI
+            updateBonusSummary(totals);
+            updateBonusBreakdown(totals);
+            updatePerformanceBreakdown(filteredReports);
+            
+            // Update report status
+            document.getElementById('reportStatus').textContent = 
+                `${filteredReports.length} days analyzed`;
+        }
+        
+        function filterReportsByPeriod(fullReports, quickReports, period, startDate, endDate) {
+            const now = new Date();
+            let filtered = [];
+            
+            // Combine reports (prioritize full reports)
+            const allReports = [...fullReports];
+            
+            // Add quick reports for dates not in full reports
+            quickReports.forEach(qReport => {
+                if (!allReports.some(r => r.date === qReport.date)) {
+                    allReports.push(qReport);
+                }
+            });
+            
+            switch(period) {
+                case 'current':
+                    // Current month
+                    const currentMonth = now.toISOString().substring(0, 7);
+                    filtered = allReports.filter(r => r.date.startsWith(currentMonth));
+                    break;
+                    
+                case 'last':
+                    // Last month
+                    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    const lastMonthStr = lastMonth.toISOString().substring(0, 7);
+                    filtered = allReports.filter(r => r.date.startsWith(lastMonthStr));
+                    break;
+                    
+                case 'quarter':
+                    // This quarter
+                    const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+                    const quarterStart = new Date(now.getFullYear(), quarterStartMonth, 1);
+                    const quarterEnd = new Date(now.getFullYear(), quarterStartMonth + 3, 0);
+                    
+                    filtered = allReports.filter(r => {
+                        const reportDate = new Date(r.date);
+                        return reportDate >= quarterStart && reportDate <= quarterEnd;
+                    });
+                    break;
+                    
+                case 'custom':
+                    // Custom range
+                    if (startDate && endDate) {
+                        filtered = allReports.filter(r => {
+                            const reportDate = new Date(r.date);
+                            return reportDate >= new Date(startDate) && reportDate <= new Date(endDate);
+                        });
+                    }
+                    break;
+                    
+                default:
+                    filtered = allReports;
+            }
+            
+            return filtered;
+        }
+        
+        function calculateBonusTotals(reports) {
+            let totals = {
+                bookings: 0,
+                revenue: 0,
+                incentives: 0,
+                messages: 0,
+                followups: 0,
+                jumiaOrders: 0,
+                partnershipLeads: 0,
+                days: reports.length,
+                bookingBonus: 0,
+                totalBonus: 0
+            };
+            
+            reports.forEach(report => {
+                totals.bookings += report.bookings || 0;
+                totals.revenue += report.revenue || 0;
+                totals.incentives += report.incentives || 0;
+                totals.messages += report.messages || 0;
+                totals.followups += report.followups || 0;
+                totals.jumiaOrders += report.jumiaOrders || 0;
+                totals.partnershipLeads += report.partnershipLeads || 0;
+            });
+            
+            // Calculate booking bonus (KES 500 per booking)
+            totals.bookingBonus = totals.bookings * 500;
+            
+            // Calculate total bonus (booking bonus + other incentives)
+            totals.totalBonus = totals.bookingBonus + totals.incentives;
+            
+            return totals;
+        }
+        
+        function updateBonusSummary(totals) {
+            const summaryElement = document.getElementById('bonusSummary');
+            
+            summaryElement.innerHTML = `
+                <div class="bonus-item">
+                    <div class="bonus-label">Total Bookings</div>
+                    <div class="bonus-value">${totals.bookings}</div>
+                    <div class="bonus-label">Bonus: KES ${(totals.bookings * 500).toLocaleString()}</div>
+                </div>
+                <div class="bonus-item">
+                    <div class="bonus-label">Revenue Generated</div>
+                    <div class="bonus-value">KES ${totals.revenue.toLocaleString()}</div>
+                    <div class="bonus-label">From ${totals.days} days</div>
+                </div>
+                <div class="bonus-item">
+                    <div class="bonus-label">Partnership Leads</div>
+                    <div class="bonus-value">${totals.partnershipLeads}</div>
+                    <div class="bonus-label">Target: 8-12/month</div>
+                </div>
+                <div class="bonus-item">
+                    <div class="bonus-label">Jumia Orders</div>
+                    <div class="bonus-value">${totals.jumiaOrders}</div>
+                    <div class="bonus-label">Processed & shipped</div>
+                </div>
+            `;
+        }
+        
+        function updateBonusBreakdown(totals) {
+            const breakdownElement = document.getElementById('bonusBreakdown');
+            const totalElement = document.getElementById('totalBonus');
+            
+            const baseSalary = 35000;
+            const totalEarnings = baseSalary + totals.totalBonus;
+            
+            breakdownElement.innerHTML = `
+                <div class="calculation-item">
+                    <span>Base Monthly Salary:</span>
+                    <span><strong>KES ${baseSalary.toLocaleString()}</strong></span>
+                </div>
+                <div class="calculation-item">
+                    <span>Booking Bonus (${totals.bookings} × KES 500):</span>
+                    <span><strong>KES ${totals.bookingBonus.toLocaleString()}</strong></span>
+                </div>
+                <div class="calculation-item">
+                    <span>Other Incentives:</span>
+                    <span><strong>KES ${totals.incentives.toLocaleString()}</strong></span>
+                </div>
+                <div class="calculation-item">
+                    <span>Total Bonuses:</span>
+                    <span><strong>KES ${totals.totalBonus.toLocaleString()}</strong></span>
+                </div>
+            `;
+            
+            totalElement.innerHTML = `
+                TOTAL MONTHLY EARNINGS: KES ${totalEarnings.toLocaleString()}
+                <div style="font-size: 1rem; margin-top: 10px; color: #666;">
+                    (Base: KES ${baseSalary.toLocaleString()} + Bonuses: KES ${totals.totalBonus.toLocaleString()})
+                </div>
+            `;
+        }
+        
+        function updatePerformanceBreakdown(reports) {
+            const breakdownElement = document.getElementById('performanceBreakdown');
+            
+            // Calculate averages
+            const avgBookings = reports.length > 0 ? (reports.reduce((sum, r) => sum + (r.bookings || 0), 0) / reports.length).toFixed(1) : 0;
+            const avgMessages = reports.length > 0 ? (reports.reduce((sum, r) => sum + (r.messages || 0), 0) / reports.length).toFixed(0) : 0;
+            const avgFollowups = reports.length > 0 ? (reports.reduce((sum, r) => sum + (r.followups || 0), 0) / reports.length).toFixed(0) : 0;
+            
+            // Calculate achievement rates
+            const bookingDays = reports.filter(r => (r.bookings || 0) >= 2).length;
+            const bookingRate = reports.length > 0 ? Math.round((bookingDays / reports.length) * 100) : 0;
+            
+            const messageDays = reports.filter(r => (r.messages || 0) >= 20).length;
+            const messageRate = reports.length > 0 ? Math.round((messageDays / reports.length) * 100) : 0;
+            
+            breakdownElement.innerHTML = `
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Average Daily Bookings</div>
+                    <div class="breakdown-value">${avgBookings}</div>
+                    <div class="breakdown-label">Target: 2.0 per day</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Booking Achievement Rate</div>
+                    <div class="breakdown-value">${bookingRate}%</div>
+                    <div class="breakdown-label">${bookingDays} of ${reports.length} days</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Average Daily Messages</div>
+                    <div class="breakdown-value">${avgMessages}</div>
+                    <div class="breakdown-label">Target: 20 per day</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Message Achievement Rate</div>
+                    <div class="breakdown-value">${messageRate}%</div>
+                    <div class="breakdown-label">${messageDays} of ${reports.length} days</div>
+                </div>
+            `;
+        }
+        
+        function printBonusReport() {
+            window.print();
+        }
+        
+        // Import functions from main script
+        function showToast(message, type = 'info') {
+            // Same as in main script
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, 3000);
+        }
+        
+        function checkLockStatus() {
+            // Same as in main script
+            const isLocked = localStorage.getItem('ensoDashboardLocked') === 'true';
+            const lockStatus = document.getElementById('lockStatus');
+            
+            if (lockStatus) {
+                if (isLocked) {
+                    lockStatus.className = 'lock-status locked';
+                    lockStatus.innerHTML = '<i class="fas fa-lock"></i> <span>Locked</span>';
+                } else {
+                    lockStatus.className = 'lock-status';
+                    lockStatus.innerHTML = '<i class="fas fa-lock-open"></i> <span>Unlocked</span>';
+                }
+            }
+        }
+        
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear ALL data? This cannot be undone.')) {
+                localStorage.removeItem('ensoReports');
+                localStorage.removeItem('ensoFullReports');
+                localStorage.removeItem('ensoReportDraft');
+                loadBonusData();
+                showToast('All data cleared.', 'success');
+            }
+        }
+    </script>
+</body>
+</html>
