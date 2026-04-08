@@ -9,6 +9,26 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="chart-config.js" defer></script>
     <script src="script.js" defer></script>
+    <!-- PWA Meta Tags -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2c3e50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/icon-192x192.png">
+
+<!-- Add to navigation after existing items -->
+<li><a href="bonus-report.html"><i class="fas fa-money-bill-wave"></i> Bonus Report</a></li>
+<li><a href="admin-lock.html" class="nav-lock"><i class="fas fa-lock"></i> Admin</a></li>
+
+<!-- Add lock status indicator in header -->
+<div class="lock-status" id="lockStatus">
+    <i class="fas fa-lock-open"></i> <span>Unlocked</span>
+</div>
+
+<!-- Add install button in header -->
+<button class="install-btn" id="installBtn" style="display: none;">
+    <i class="fas fa-download"></i> Install App
+</button>
 </head>
 <body>
     <!-- Header -->
